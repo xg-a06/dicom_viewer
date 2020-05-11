@@ -10,7 +10,7 @@ module.exports = {
   },
   extends: [
     // https://github.com/standard/standard/blob/master/docs/RULES-en.md
-    'standard'
+    'standard', 'prettier'
   ],
   // add your custom rules here
   rules: {
