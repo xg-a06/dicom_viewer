@@ -12,8 +12,9 @@ function generateLinearVOILUT (windowWidth = 1200, windowCenter = -600) {
 function generateLinearModalityLUT (slope, intercept) {
   return (storedPixelValue) => storedPixelValue * slope + intercept;
 }
+
 ajax({
-  url: 'http://localhost:3000/1.2.840.113619.2.416.20795945767143795462432515614159920',
+  url: 'http://localhost:3333/1.2.840.113619.2.416.20795945767143795462432515614159920',
   responseType: 'arraybuffer'
 }).then(({ code, data }) => {
   if (code === 200) {
