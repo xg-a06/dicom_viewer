@@ -36,6 +36,26 @@ class DICOMLoader {
       this.workers.push(workerFactory(iturboLimit))
     }
   }
+  topTask (imgs) {
+    // if (imgs) {
+    //   // console.log('调整任务优先级');
+    //   let start = [], end = [];
+    //   this.priorQueue.forEach(task => {
+    //     if (imgs.indexOf(task.imageId) !== -1) {
+    //       start.push(task);
+    //     } else {
+    //       end.push(task);
+    //     }
+    //   });
+    //   this.priorQueue = [...start, ...end];
+    // }
+  }
+  addTask () {
+
+  }
+  startTask () {
+
+  }
 }
 
 export default DICOMLoader
