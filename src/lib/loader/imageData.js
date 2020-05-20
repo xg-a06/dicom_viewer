@@ -1,16 +1,53 @@
 /* eslint-disable no-fallthrough */
 import dicomParser from "dicom-parser";
 import processDecodeTask from './decodeImageFrame';
+import { getNumberValues } from '../../utils/tools'
 
-
-function isBitSet (byte, bitPos) {
-  return byte & (1 << bitPos);
+const framesAreFragmented = (dataSet) => {
+  const numberOfFrames = dataSet.intString('x00280008');
+  const pixelDataElement = dataSet.elements.x7fe00010;
+  return numberOfFrames !== pixelDataElement.fragments.length;
 }
 
+const getEncapsulatedImageFrame = (metaData, dataSet) => {
+  const { elements: { x7fe00010: pixelDataElement } } = metaData;
+  if (pixelDataElement && pixelDataElement.basicOffsetTable.length) {
+    // Basic Offset Table is not empty
+    return dicomParser.readEncapsulatedImageFrame(
+      dataSet,
+      dataSet.elements.x7fe00010,
+      0 // 偏移起始 暂时没有写死0
+    );
+  }
+  // Empty basic offset table
+  if (framesAreFragmented(dataSet)) {
+    const basicOffsetTable = dicomParser.createJPEGBasicOffsetTable(
+      dataSet,
+      dataSet.elements.x7fe00010
+    );
+
+    return dicomParser.readEncapsulatedImageFrame(
+      dataSet,
+      dataSet.elements.x7fe00010,
+      0,// 偏移起始 暂时没有写死0
+      basicOffsetTable
+    );
+  }
+
+  return dicomParser.readEncapsulatedPixelDataFromFragments(
+    dataSet,
+    dataSet.elements.x7fe00010,
+    0 // 偏移起始 暂时没有写死0
+  );
+}
+
+const isBitSet = (byte, bitPos) => {
+  return byte & (1 << bitPos);
+}
 /**
  * Function to deal with unpacking a binary frame
  */
-function unpackBinaryFrame (byteArray, frameOffset, pixelsPerFrame) {
+const unpackBinaryFrame = (byteArray, frameOffset, pixelsPerFrame) => {
   // Create a new pixel array given the image size
   const pixelData = new Uint8Array(pixelsPerFrame);
 
@@ -30,11 +67,6 @@ function unpackBinaryFrame (byteArray, frameOffset, pixelsPerFrame) {
 
   return pixelData;
 }
-
-const getEncapsulatedImageFrame = () => {
-
-}
-
 const getUncompressedImageFrame = (metaData) => {
   const { elements: { x7fe00010: pixelDataElement }, rows, columns, samplesPerPixel, bitsAllocated, byteArray } = metaData;
 
@@ -70,7 +102,7 @@ const getUncompressedImageFrame = (metaData) => {
   }
 }
 
-const getPixelData = (metaData) => {
+const getPixelData = (metaData, dataSet) => {
   const pixelDataElement = metaData.elements.x7fe00010;
 
   if (!pixelDataElement) {
@@ -78,7 +110,7 @@ const getPixelData = (metaData) => {
   }
 
   if (pixelDataElement.encapsulatedPixelData) {
-    return getEncapsulatedImageFrame(metaData);
+    return getEncapsulatedImageFrame(metaData, dataSet);
   }
 
   return getUncompressedImageFrame(metaData);
@@ -109,9 +141,15 @@ const createImage = (metaData, pixelData) => {
   return result;
 }
 
-const getMetaData = (arrayBuffer) => {
+const getDataSet = (arrayBuffer) => {
   const byteArray = new Uint8Array(arrayBuffer);
-  const dataSet = dicomParser.parseDicom(byteArray);
+  return dicomParser.parseDicom(byteArray);
+}
+
+const getMetaData = (dataSet) => {
+  const pixelSpacing = getNumberValues(dataSet, 'x00280030', 2);
+  const photometricInterpretation = dataSet.string('x00280004');
+
   const metaData = {
     byteArray: dataSet.byteArray,
     elements: dataSet.elements,
@@ -127,21 +165,54 @@ const getMetaData = (arrayBuffer) => {
     samplesPerPixel: dataSet.uint16('x00280002'),
     // 像素数据的表现类型 这是一个枚举值，分别为十六进制数0000和0001.
     pixelRepresentation: dataSet.uint16('x00280103'),
+    // 当Samples Per Pixel字段的值大于1时，Planar Configuration字段规定了实际像素信息的存储方式
     planarConfiguration: dataSet.uint16('x00280006'),
+    // 像素弹性变换
     pixelAspectRatio: dataSet.string('x00280034'),
+    // 行间距
+    rowPixelSpacing: pixelSpacing[0],
+    // 列间距
+    columnPixelSpacing: pixelSpacing[1],
+    // 缩放斜率和截距由硬件制造商决定。
+    // 它指定从存储在磁盘表示中的像素到存储在内存表示中的像素的线性转换。磁盘存储的值定义为SV。而转化到内存中的像素值uints就需要两个dicom tag : Rescale intercept和Rescale slope。
+    // OutputUnits=m∗SV+b
+    // RescaleIntercept:b
+    // RescaleSlope:m
+    slope: dataSet.floatString('x00281053') || 0,
+    intercept: dataSet.floatString('x00281052') || 0,
+    // 该字段常见的值有MONOCHROME1、MONOCHROME2、PALETTE COLOR、RGB，其中MONOCHROME1和MONOCHROME2表示单通道灰度图像，只是两者对黑色和白色的映射相反而已；
+    // PALETTE COLOR就是BMP中提到的调色板图像，此时需要SamplesPerPixel字段为1,；RGB是常见的R（红）、G（绿）、B（蓝）三通道彩色图像，此时SamplesPerPixel字段值为3，
+    // 这就是我们实例中使用的图像。除此以外DICOM3.0标准中还给出了YBR_FULL、HSV、ARGB、CMYK等方式
+    photometricInterpretation,
+    invert: photometricInterpretation === 'MONOCHROME1',
+    minPixelValue: dataSet.uint16('00280106'),
+    maxPixelValue: dataSet.uint16('00280107'),
+    // 窗位
+    windowCenter: getNumberValues(dataSet, 'x00281050', 1),
+    // 窗宽
+    windowWidth: getNumberValues(dataSet, 'x00281051', 1)
   }
-
-
-
   return metaData;
 }
-const createImageData = async (arrayBuffer) => {
-  const metaData = getMetaData(arrayBuffer);
-  const pixelData = getPixelData(metaData);
 
-  const image = await createImage(metaData, pixelData);
-  return image;
+const postprocessor = (metaData) => {
+  metaData.sizeInBytes = metaData.pixelData.byteLength;
+  if (metaData.pixelData instanceof Float32Array) {
+    throw new Error('Float32Array pixel data not handle');
+  } else {
+    metaData.getPixelData = () => metaData.pixelData;
+  }
+  return metaData;
 }
 
+const createImageData = async (arrayBuffer) => {
+  const dataSet = getDataSet(arrayBuffer);
+  let metaData = getMetaData(dataSet);
+  const pixelData = getPixelData(metaData, dataSet);
+  // 解码得到pixelData
+  metaData = await createImage(metaData, pixelData);
+  const image = postprocessor(metaData);
+  return image;
+}
 
 export default createImageData;
