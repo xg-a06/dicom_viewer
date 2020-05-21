@@ -53,9 +53,30 @@ class DICOMLoader {
   addTask () {
 
   }
-  startTask () {
-
+  pickTask (worker) {
+    // this.check();
+    let r = this._pickTask(worker);
+    if (!r) {
+      return;
+    }
+    r.then(() => {
+      setTimeout(() => {
+        worker.isWork = false;
+        this.pickTask(worker);
+      }, Math.ceil(Math.random() * 100 + 100));
+    });
+  }
+  start () {
+    this.workers.forEach(worker => {
+      if (!worker.isWork) {
+        this.pickTask(worker);
+      }
+    });
   }
 }
 
 export default DICOMLoader
+
+
+
+
