@@ -50,6 +50,11 @@ const baseConfig = {
         test: /\.js?$/,
         loader: 'happypack/loader?id=happy-babel',
         include: [resolve('src'), resolve('demo')]
+      },
+      {
+        test: /\.worker\.js$/,
+        use: { loader: 'worker-loader' },
+        include: [resolve('src'), resolve('demo')]
       }
     ]
   },
@@ -88,7 +93,7 @@ module.exports = () => {
   let exConfig = {}
   if (process.env.NODE_ENV === 'local') {
     exConfig = {
-            module: {
+      module: {
         rules: [
           {
             test: /\.js$/,
@@ -103,7 +108,7 @@ module.exports = () => {
           }
         ]
       },
-            devServer: config.devServer
+      devServer: config.devServer
     }
   } else {
     exConfig = {

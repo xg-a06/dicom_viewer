@@ -36,7 +36,7 @@ class AJAX {
       if (!cache) {
         dataStr += `${dataStr ? '&' : ''}_=${Math.random()}`
       }
-      dataStr = `?${dataStr}`
+      dataStr = dataStr ? `?${dataStr}` : '';
       this.config.url = url + dataStr
       this.config.data = null
     } else {

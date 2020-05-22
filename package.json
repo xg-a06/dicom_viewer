@@ -65,7 +65,8 @@
     "webpack-cli": "^3.3.2",
     "webpack-dev-server": "^3.4.1",
     "webpack-merge": "^4.2.1",
-    "webpack-parallel-uglify-plugin": "^1.1.0"
+    "webpack-parallel-uglify-plugin": "^1.1.0",
+    "worker-loader": "^2.0.0"
   },
   "dependencies": {
     "dicom-parser": "^1.8.5"
