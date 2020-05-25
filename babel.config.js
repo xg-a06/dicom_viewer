@@ -2,7 +2,7 @@ const presets = [
   [
     '@babel/preset-env',
     {
-      targets: 'last 2 versions,safari >= 7,ie >= 10,chrome>=60',
+      targets: 'chrome>=49',
       modules: false
     }
   ]
@@ -25,6 +25,6 @@ const plugins = [
   ['@babel/plugin-proposal-class-properties', { loose: false }],
   '@babel/plugin-proposal-json-strings',
   '@babel/plugin-proposal-object-rest-spread',
-  
+
 ]
 module.exports = { presets, plugins }

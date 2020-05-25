@@ -93,7 +93,8 @@ import { sum, minus } from './module'
 
 import Loader from './lib/loader';
 import imageUrls from '../demo/data.json'
-let len = imageUrls.length; let seriesId = '1111111';
+let len = imageUrls.length;
+let seriesId = '1111111';
 console.log(len);
 
 const cacheLoader = new Loader();
@@ -102,6 +103,8 @@ cacheLoader.addTask({
   seriesId,
   imageUrls
 })
+
+window.cc = cacheLoader;
 export default {
   sum,
   minus

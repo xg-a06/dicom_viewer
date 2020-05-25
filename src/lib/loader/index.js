@@ -1,27 +1,31 @@
-import ajax from '../../utils/ajax'
-import createImageData from './imageData'
 import { TASK_TYPE } from '../../const'
-// import LoaderWorker from '../workers/loader.worker';
+import LoaderWorker from '../workers/loader.worker';
+import { sleep, throttle } from '../../utils/tools';
 
-// const loaderWorker = new LoaderWorker();
+
 const isXp = /Windows NT 5\.1.+Chrome\/49/.test(navigator.userAgent)
 
 const lowStandardSize = 1024 * 1024 * 200
 const standardSize = 1024 * 1024 * 500
 
 const baseOptions = {
-  workerCount: 6,
+  workerCount: isXp ? 4 : 8,
   turboLimit: 2,
   turboState: true,
   sizeLimit: isXp ? lowStandardSize : standardSize
 }
 
-const workerFactory = (i, turboLimit) => {
-  return {
+const workerFactory = (i, turboLimit, callback) => {
+  const loaderWorker = new LoaderWorker();
+  loaderWorker.onmessage = (e) => {
+    callback && callback(loaderWorker, e);
+  }
+  Object.assign(loaderWorker, {
     id: Math.floor(Math.random() * 100000 + 100000),
     isTurbo: i >= turboLimit,
     isWork: false
-  }
+  })
+  return loaderWorker;
 }
 
 class DICOMLoader {
@@ -30,8 +34,17 @@ class DICOMLoader {
     this.cacheManager = { index: {} }
     this.taskQueue = []
     this.workers = []
-    this.currentSeriesID = null
+    this.currentSeriesIds = [];
     this.turboState = this.config.turboState
+    this.check = throttle(this._check, 1000)
+    this.workerCallback = (worker, e) => {
+      let { seriesId, index, image } = e.data;
+      if (image) {
+        this.setCache(seriesId, index, image);
+        worker.isWork = false;
+        this.pickTask(worker);
+      }
+    }
     this.initWorker()
   }
   setConfig (options) {
@@ -40,7 +53,7 @@ class DICOMLoader {
   initWorker () {
     let { workerCount, turboLimit } = this.config
     for (let i = 0; i < workerCount; i++) {
-      this.workers.push(workerFactory(turboLimit))
+      this.workers.push(workerFactory(i, turboLimit, this.workerCallback))
     }
   }
   alloc (seriesId, len) {
@@ -64,47 +77,16 @@ class DICOMLoader {
     this.cacheManager[seriesId][index] = image;
     this.cacheManager.index[image.imageId] = [seriesId, index];
   }
-  async loadImage (imageId) {
-    let image = null;
-    let { code, data } = await ajax({
-      url: imageId,
-      responseType: 'arraybuffer'
-    });
-    if (code === 200) {
-      image = await createImageData(data);
-    }
-    return image;
+  setCurrentSeriesIds (...seriesIds) {
+    this.currentSeriesIds = seriesIds;
   }
-  retryLoadImage (imageId, retry = 3) {
-    return this.loadImage(imageId).then(image => {
-      return image;
-    }).catch((error) => {
-      console.log(error);
-      return (retry > 0 ? this.loadImage(imageId, --retry) : false);
-    });
-  }
-  async load (seriesId, index, imageId) {
-    try {
-      let image = this.getCache(imageId);
-      if (!image) {
-        image = await this.retryLoadImage(imageId);
-        if (image) {
-          this.setCache(seriesId, index, image);
-        }
-      }
-      return {
-        image,
-        index,
-        count: this.cacheManager[seriesId].filter(i => i).length
-      };
-    } catch (error) {
-      console.error('加载图片发生异常', index, error);
-      return {
-        image: null,
-        index,
-        count: this.cacheManager[seriesId].filter(i => i).length
-      };
+  addCurrentSeriesId (seriesId) {
+    if (this.currentSeriesIds.indexOf(seriesId) === -1) {
+      this.currentSeriesIds.push(seriesId);
     }
+  }
+  getCurrentSeriesId () {
+    return this.currentSeriesIds;
   }
   topTask (imageUrls = []) {
     let start = []; let end = [];
@@ -158,31 +140,73 @@ class DICOMLoader {
     this.start();
   }
   pickTask (worker) {
-    let { taskQueue } = this;
-    if (taskQueue.length > 0) {
-      if (worker.isTurbo && !this.turboState) {
-        return;
+    this.check();
+    setTimeout(() => {
+      let { taskQueue } = this;
+      if (taskQueue.length > 0) {
+        if (worker.isTurbo && !this.turboState) {
+          return;
+        }
+        let {
+          seriesId,
+          index,
+          imageId,
+        } = taskQueue.shift();
+        worker.isWork = true;
+        worker.postMessage({
+          seriesId,
+          index,
+          imageId,
+        });
       }
-      let {
-        seriesId,
-        index,
-        imageId,
-      } = taskQueue.shift();
-      worker.isWork = true;
-      this.load(seriesId, index, imageId).then(() => {
-        setTimeout(() => {
-          worker.isWork = false;
-          this.pickTask(worker);
-        }, Math.ceil(Math.random() * 100 + 100));
-      });;
+    }, Math.ceil(Math.random() * 100 + 50));
+  }
+  async start () {
+    for (const worker of this.workers) {
+      await sleep(Math.ceil(Math.random() * 100 + 100))
+      this.pickTask(worker);
     }
   }
-  start () {
-    this.workers.forEach(worker => {
-      if (!worker.isWork) {
-        this.pickTask(worker);
+  recovery (size) {
+    let { currentSeriesIds, cacheManager } = this;
+    let series = Reflect.ownKeys(cacheManager).filter(key => key !== 'index' && currentSeriesIds.indexOf(key) === -1);
+    series.forEach(s => {
+      if (cacheManager[s] && cacheManager[s].length > 0) {
+        let last = cacheManager[s].pop();
+        cacheManager[s] = cacheManager[s].filter(i => i);
+        for (let i = 0; i < 20; i++) {
+          if (cacheManager[s].length > 2) {
+            let img = cacheManager[s].pop();
+            delete cacheManager.index[img.imageId];
+          }
+        }
+        if (last) {
+          cacheManager[s][cacheManager.index[last.imageId][1]] = last;
+        }
       }
     });
+    let currentSize = this.getSize();
+    if (size !== currentSize && currentSize > this.config.sizeLimit) {
+      this.recovery(currentSize);
+    }
+  }
+  getSize () {
+    let { cacheManager } = this;
+    let series = Reflect.ownKeys(cacheManager).filter(key => key !== 'index');
+    let totalSize = 0;
+    series.forEach(s => {
+      cacheManager[s].forEach(img => {
+        totalSize += img.sizeInBytes;
+      });
+    });
+    return totalSize;
+  }
+  _check () {
+    if (this.getSize() > this.config.sizeLimit) {
+      console.log('开始回收，缓存大小', this.getSize() / 1024 / 1024);
+      this.recovery();
+      console.log('回收完毕,缓存大小', this.getSize() / 1024 / 1024);
+    }
   }
 }
 

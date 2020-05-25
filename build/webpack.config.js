@@ -8,7 +8,7 @@
 const path = require('path')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
-const ParallelUglifyPlugin = require('webpack-parallel-uglify-plugin')
+const TerserPlugin = require('terser-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HappyPack = require('happypack')
 const os = require('os')
@@ -47,13 +47,17 @@ const baseConfig = {
   module: {
     rules: [
       {
+        enforce: 'pre',
         test: /\.js?$/,
         loader: 'happypack/loader?id=happy-babel',
         include: [resolve('src'), resolve('demo')]
       },
       {
         test: /\.worker\.js$/,
-        use: { loader: 'worker-loader' },
+        use: {
+          loader: 'worker-loader',
+          // options: { inline: true, fallback: false }
+        },
         include: [resolve('src'), resolve('demo')]
       }
     ]
@@ -117,19 +121,23 @@ module.exports = () => {
       },
       optimization: {
         minimizer: [
-          new ParallelUglifyPlugin({
-            cacheDir: '.cache/',
-            uglifyJS: {
+          new TerserPlugin({
+            cache: '.cache/',
+            terserOptions: {
+              compress: {
+                collapse_vars: true,
+                reduce_vars: true,
+                drop_debugger: true,
+                drop_console: true,  //生产环境自动删除console
+              },
               output: {
                 comments: false,
                 beautify: false
               },
-              compress: {
-                drop_console: false,
-                collapse_vars: true,
-                reduce_vars: true
-              }
-            }
+              warnings: false,
+            },
+            sourceMap: false,
+            parallel: true,//使用多进程并行运行来提高构建速度。默认并发运行数：os.cpus().length - 1。
           })
         ]
       },

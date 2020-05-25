@@ -197,11 +197,13 @@ const getMetaData = (dataSet) => {
 
 const postprocessor = (metaData) => {
   metaData.sizeInBytes = metaData.pixelData.byteLength;
-  if (metaData.pixelData instanceof Float32Array) {
-    throw new Error('Float32Array pixel data not handle');
-  } else {
-    metaData.getPixelData = () => metaData.pixelData;
-  }
+  // if (metaData.pixelData instanceof Float32Array) {
+  //   throw new Error('Float32Array pixel data not handle');
+  // } else {
+  //   metaData.getPixelData = () => metaData.pixelData;
+  // }
+  delete metaData.elements;
+
   return metaData;
 }
 

@@ -9,6 +9,7 @@ const loadImage = async (imageId) => {
   });
   if (code === 200) {
     image = await createImageData(data);
+    image.imageId = imageId;
   }
   return image;
 }

@@ -2,6 +2,32 @@ function noop (data) {
   return data;
 }
 
+function sleep (milliSeconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliSeconds))
+}
+
+function debounce (fun, delay, ctx) {
+  return function (...args) {
+    let _this = ctx || this;
+    clearTimeout(fun.id)
+    fun.id = setTimeout(() => {
+      fun.apply(_this, args)
+    }, delay)
+  }
+}
+
+function throttle (fun, delay, ctx) {
+  let last = 0;
+  return function (...args) {
+    let _this = ctx || this;
+    let now = new Date()
+    if (now - last > delay) {
+      fun.apply(_this, args)
+      last = now;
+    }
+  }
+}
+
 function getNumberValues (dataSet, tag, minimumLength) {
   const values = [];
   const valueAsString = dataSet.string(tag);
@@ -23,5 +49,8 @@ function getNumberValues (dataSet, tag, minimumLength) {
 
 export {
   noop,
+  sleep,
+  debounce,
+  throttle,
   getNumberValues
 }
