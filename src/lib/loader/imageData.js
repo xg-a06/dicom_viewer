@@ -102,7 +102,7 @@ const getUncompressedImageFrame = (metaData) => {
   }
 }
 
-const getPixelData = (metaData, dataSet) => {
+const getPixelDataSource = (metaData, dataSet) => {
   const pixelDataElement = metaData.elements.x7fe00010;
 
   if (!pixelDataElement) {
@@ -116,7 +116,7 @@ const getPixelData = (metaData, dataSet) => {
   return getUncompressedImageFrame(metaData);
 }
 
-const createImage = (metaData, pixelData) => {
+const createImage = (metaData, pixelDataSource) => {
   let result = null;
   const { transferSyntax } = metaData;
   switch (transferSyntax) {
@@ -130,7 +130,7 @@ const createImage = (metaData, pixelData) => {
     case '1.2.840.10008.1.2.1.99':
     // RLE Lossless
     case '1.2.840.10008.1.2.5':
-      result = processDecodeTask(metaData, pixelData);
+      result = processDecodeTask(metaData, pixelDataSource);
       break;
     default:
       result = new Promise((resolve, reject) => {
@@ -149,7 +149,6 @@ const getDataSet = (arrayBuffer) => {
 const getMetaData = (dataSet) => {
   const pixelSpacing = getNumberValues(dataSet, 'x00280030', 2);
   const photometricInterpretation = dataSet.string('x00280004');
-
   const metaData = {
     byteArray: dataSet.byteArray,
     elements: dataSet.elements,
@@ -200,7 +199,7 @@ const postprocessor = (metaData) => {
   // if (metaData.pixelData instanceof Float32Array) {
   //   throw new Error('Float32Array pixel data not handle');
   // } else {
-  //   metaData.getPixelData = () => metaData.pixelData;
+  // metaData.getPixelData = () => metaData.pixelData;
   // }
   delete metaData.elements;
 
@@ -210,9 +209,9 @@ const postprocessor = (metaData) => {
 const createImageData = async (arrayBuffer) => {
   const dataSet = getDataSet(arrayBuffer);
   let metaData = getMetaData(dataSet);
-  const pixelData = getPixelData(metaData, dataSet);
+  const pixelDataSource = getPixelDataSource(metaData, dataSet);
   // 解码得到pixelData
-  metaData = await createImage(metaData, pixelData);
+  metaData = await createImage(metaData, pixelDataSource);
   const image = postprocessor(metaData);
   return image;
 }

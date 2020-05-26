@@ -9,7 +9,7 @@ const lowStandardSize = 1024 * 1024 * 200
 const standardSize = 1024 * 1024 * 500
 
 const baseOptions = {
-  workerCount: isXp ? 4 : 8,
+  workerCount: navigator.hardwareConcurrency,
   turboLimit: 2,
   turboState: true,
   sizeLimit: isXp ? lowStandardSize : standardSize
@@ -141,30 +141,32 @@ class DICOMLoader {
   }
   pickTask (worker) {
     this.check();
-    setTimeout(() => {
-      let { taskQueue } = this;
-      if (taskQueue.length > 0) {
-        if (worker.isTurbo && !this.turboState) {
-          return;
-        }
-        let {
-          seriesId,
-          index,
-          imageId,
-        } = taskQueue.shift();
-        worker.isWork = true;
-        worker.postMessage({
-          seriesId,
-          index,
-          imageId,
-        });
+    // setTimeout(() => {
+    let { taskQueue } = this;
+    if (taskQueue.length > 0) {
+      if (worker.isTurbo && !this.turboState) {
+        return;
       }
-    }, Math.ceil(Math.random() * 100 + 50));
+      let {
+        seriesId,
+        index,
+        imageId,
+      } = taskQueue.shift();
+      worker.isWork = true;
+      worker.postMessage({
+        seriesId,
+        index,
+        imageId,
+      });
+    }
+    // }, Math.ceil(Math.random() * 100 + 100));
   }
   async start () {
     for (const worker of this.workers) {
       await sleep(Math.ceil(Math.random() * 100 + 100))
-      this.pickTask(worker);
+      if (!worker.isWork) {
+        this.pickTask(worker);
+      }
     }
   }
   recovery (size) {
