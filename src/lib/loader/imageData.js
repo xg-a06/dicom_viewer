@@ -147,6 +147,7 @@ const getDataSet = (arrayBuffer) => {
 }
 
 const getMetaData = (dataSet) => {
+  debugger
   const pixelSpacing = getNumberValues(dataSet, 'x00280030', 2);
   const photometricInterpretation = dataSet.string('x00280004');
   const metaData = {
@@ -189,13 +190,39 @@ const getMetaData = (dataSet) => {
     // 窗位
     windowCenter: getNumberValues(dataSet, 'x00281050', 1),
     // 窗宽
-    windowWidth: getNumberValues(dataSet, 'x00281051', 1)
+    windowWidth: getNumberValues(dataSet, 'x00281051', 1),
+    // instanceNumber
+    instanceNumber: dataSet.intString('x00200013'),
+
   }
   return metaData;
 }
 
+function getPixelValues (pixelData) {
+  let minPixelValue = Number.MAX_VALUE;
+  let maxPixelValue = Number.MIN_VALUE;
+  const len = pixelData.length;
+  let pixel;
+
+  for (let i = 0; i < len; i++) {
+    pixel = pixelData[i];
+    minPixelValue = minPixelValue < pixel ? minPixelValue : pixel;
+    maxPixelValue = maxPixelValue > pixel ? maxPixelValue : pixel;
+  }
+
+  return {
+    minPixelValue,
+    maxPixelValue
+  };
+}
+
 const postprocessor = (metaData) => {
   metaData.sizeInBytes = metaData.pixelData.byteLength;
+  if (!metaData.minPixelValue || !metaData.maxPixelValue) {
+    const pixelValues = getPixelValues(metaData.pixelData);
+    metaData.minPixelValue = pixelValues.minPixelValue;
+    metaData.maxPixelValue = pixelValues.maxPixelValue;
+  }
   // if (metaData.pixelData instanceof Float32Array) {
   //   throw new Error('Float32Array pixel data not handle');
   // } else {

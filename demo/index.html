@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Demo Page</title>
   </head>
@@ -17,9 +20,37 @@
     #wrapper {
       width: 100%;
       height: 100%;
+      /* width: 512px;
+      height: 512px; */
+    }
+    #info {
+      position: fixed;
+      z-index: 1;
+      top: 10px;
+      left: 10px;
+      color: chartreuse;
+    }
+    #play {
+      background-color: chartreuse;
+      width: 100px;
+      height: 40px;
+      border: 0;
+      outline: none;
+    }
+    #stop {
+      background-color: chartreuse;
+      width: 100px;
+      height: 40px;
+      border: 0;
+      outline: none;
     }
   </style>
   <body>
     <div id="wrapper"></div>
+    <div id="info">
+      <span id="now">0</span>/<span id="total">0</span>
+      <div>第<span id="current">0</span>张</div>
+      <button id="play">play</button> <button id="stop">stop</button>
+    </div>
   </body>
 </html>

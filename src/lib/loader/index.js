@@ -1,4 +1,5 @@
-import { TASK_TYPE } from '../../const'
+import EventEmitter from '../../utils/event'
+import { TASK_TYPE, LOADER_EVENT } from '../../const'
 import LoaderWorker from '../workers/loader.worker';
 import { sleep, throttle } from '../../utils/tools';
 
@@ -7,9 +8,8 @@ const isXp = /Windows NT 5\.1.+Chrome\/49/.test(navigator.userAgent)
 
 const lowStandardSize = 1024 * 1024 * 200
 const standardSize = 1024 * 1024 * 500
-
 const baseOptions = {
-  workerCount: navigator.hardwareConcurrency,
+  workerCount: navigator.hardwareConcurrency || 4,
   turboLimit: 2,
   turboState: true,
   sizeLimit: isXp ? lowStandardSize : standardSize
@@ -28,24 +28,29 @@ const workerFactory = (i, turboLimit, callback) => {
   return loaderWorker;
 }
 
-class DICOMLoader {
+class DICOMLoader extends EventEmitter {
   constructor(options = {}) {
+    super();
     this.config = Object.assign({}, baseOptions, options)
     this.cacheManager = { index: {} }
     this.taskQueue = []
     this.workers = []
-    this.currentSeriesIds = [];
+    this.currentSeriesIds = []
     this.turboState = this.config.turboState
     this.check = throttle(this._check, 1000)
-    this.workerCallback = (worker, e) => {
-      let { seriesId, index, image } = e.data;
-      if (image) {
-        this.setCache(seriesId, index, image);
-        worker.isWork = false;
-        this.pickTask(worker);
-      }
-    }
     this.initWorker()
+  }
+  workerCallback = (worker, e) => {
+    let { seriesId, index, image } = e.data;
+    if (image) {
+      image.getPixelData = () => image.pixelData;
+      index = image.instanceNumber - 1;
+      this.setCache(seriesId, index, image);
+      let count = this.cacheManager[seriesId].filter(i => i).length;
+      this.emit(LOADER_EVENT.LOADED, { seriesId, index, image, count })
+      worker.isWork = false;
+      this.pickTask(worker);
+    }
   }
   setConfig (options) {
     this.config = Object.assign({}, this.config, options)
@@ -141,25 +146,26 @@ class DICOMLoader {
   }
   pickTask (worker) {
     this.check();
-    // setTimeout(() => {
-    let { taskQueue } = this;
-    if (taskQueue.length > 0) {
-      if (worker.isTurbo && !this.turboState) {
-        return;
+    setTimeout(() => {
+      let { taskQueue } = this;
+      if (taskQueue.length > 0) {
+        if (worker.isTurbo && !this.turboState) {
+          return;
+        }
+        let {
+          seriesId,
+          index,
+          imageId,
+        } = taskQueue.shift();
+        worker.isWork = true;
+
+        worker.postMessage({
+          seriesId,
+          index,
+          imageId,
+        });
       }
-      let {
-        seriesId,
-        index,
-        imageId,
-      } = taskQueue.shift();
-      worker.isWork = true;
-      worker.postMessage({
-        seriesId,
-        index,
-        imageId,
-      });
-    }
-    // }, Math.ceil(Math.random() * 100 + 100));
+    }, Math.ceil(Math.random() * 100 + 100));
   }
   async start () {
     for (const worker of this.workers) {

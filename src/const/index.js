@@ -1,8 +1,12 @@
 const TASK_TYPE = {
-  PRIOR: 1,
-  NORMAL: 2
+  PRIOR: 'PRIOR',
+  NORMAL: 'NORMAL'
 }
 
+const LOADER_EVENT = {
+  LOADED: 'LOADED'
+}
 export {
-  TASK_TYPE
+  TASK_TYPE,
+  LOADER_EVENT
 }
