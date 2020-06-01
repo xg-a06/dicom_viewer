@@ -147,7 +147,6 @@ const getDataSet = (arrayBuffer) => {
 }
 
 const getMetaData = (dataSet) => {
-  debugger
   const pixelSpacing = getNumberValues(dataSet, 'x00280030', 2);
   const photometricInterpretation = dataSet.string('x00280004');
   const metaData = {
@@ -188,9 +187,9 @@ const getMetaData = (dataSet) => {
     minPixelValue: dataSet.uint16('00280106'),
     maxPixelValue: dataSet.uint16('00280107'),
     // 窗位
-    windowCenter: getNumberValues(dataSet, 'x00281050', 1),
+    windowCenter: getNumberValues(dataSet, 'x00281050', 1)[0] || null,
     // 窗宽
-    windowWidth: getNumberValues(dataSet, 'x00281051', 1),
+    windowWidth: getNumberValues(dataSet, 'x00281051', 1)[0] || null,
     // instanceNumber
     instanceNumber: dataSet.intString('x00200013'),
 

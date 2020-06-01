@@ -11,7 +11,7 @@ const standardSize = 1024 * 1024 * 500
 const baseOptions = {
   workerCount: navigator.hardwareConcurrency || 4,
   turboLimit: 2,
-  turboState: true,
+  turboState: false,
   sizeLimit: isXp ? lowStandardSize : standardSize
 }
 
@@ -165,7 +165,8 @@ class DICOMLoader extends EventEmitter {
           imageId,
         });
       }
-    }, Math.ceil(Math.random() * 100 + 100));
+      // }, Math.ceil(Math.random() * 50 + 50));
+    }, Math.ceil(Math.random() * 50));
   }
   async start () {
     for (const worker of this.workers) {

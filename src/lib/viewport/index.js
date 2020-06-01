@@ -1,7 +1,8 @@
-import { LOADER_EVENT } from '../../const'
+import { LOADER_EVENT, WWWC } from '../../const'
 import Loader from '../loader/index'
 import { getVoiLUTData } from './lut'
 import { debounce } from '../../utils/tools';
+
 const baseOptions = {
 
 }
@@ -13,20 +14,30 @@ class Viewer {
 
     this.studyId = this.config.studyId;
     this.seriesId = this.config.seriesId;
-    this.currentIndex = -1;
-    this.showIndex = 0;
     this.length = this.config.imageUrls.length;
     this.image = null;
+    this.currentIndex = -1;
+    this.showIndex = 0;
     this.renderCanvas = null;
     this.canvas = null;
     this.elm = this.config.elm;
     this.timerId = null;
     this.isRunning = false;
 
+    this.displayState = {
+      center: {
+        x: 0, y: 0
+      },
+      scale: 1,
+      wwwc: {
+        ww: WWWC.LUNG.ww,
+        wc: WWWC.LUNG.wc
+      }
+    }
+
     this.totalElm = document.querySelector('#total');
     this.nowElm = document.querySelector('#now');
     this.currentElm = document.querySelector('#current');
-
 
     this.init()
   }
@@ -39,6 +50,7 @@ class Viewer {
     this.initCanvas();
     this.initTask();
     this.initResize();
+
   }
   initResize () {
     const iframe = document.createElement('iframe');
@@ -52,7 +64,10 @@ class Viewer {
   }
   initCanvas () {
     const renderCanvas = document.createElement('canvas');
+    renderCanvas.width = 512;
+    renderCanvas.height = 512;
     this.renderCanvas = renderCanvas;
+
     const canvas = document.createElement('canvas');
     canvas.style.position = 'relative';
     canvas.style.display = 'block';
@@ -107,16 +122,15 @@ class Viewer {
     this.update();
   }
   getImageData () {
-    let { image, renderCanvas } = this;
+    let { image, renderCanvas, displayState: { wwwc } } = this;
     const pixelData = image.getPixelData();
+    ({ ww: image.windowWidth, wc: image.windowCenter } = wwwc);
     const lut = getVoiLUTData(image);
-    // let { width, height } = this.getElmSize();
-    renderCanvas.width = 512;
-    renderCanvas.height = 512;
+    const { width, height } = renderCanvas;
     const ctx = renderCanvas.getContext('2d');
     ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, 512, 512);
-    const renderCanvasData = ctx.getImageData(0, 0, 512, 512);
+    ctx.fillRect(0, 0, width, height);
+    const renderCanvasData = ctx.getImageData(0, 0, width, height);
 
     let imageDataIndex = 3;
     let numPixels = 512 * 512;
@@ -136,7 +150,8 @@ class Viewer {
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext("2d");
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    // ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.save();
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, width, height);
     let w = 0; let h = 0; let x = 0; let y = 0;
@@ -149,7 +164,10 @@ class Viewer {
       x = 0;
       y = height / 2 - h / 2;
     }
+    ctx.translate(-w * 1.5, 0);
+    ctx.scale(4, 1);
     ctx.drawImage(renderCanvas, 0, 0, 512, 512, x, y, w, h);
+    ctx.restore();
   }
 }
 
