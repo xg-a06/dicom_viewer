@@ -1,7 +1,7 @@
 import { LOADER_EVENT, WWWC } from '../../const'
 import Loader from '../loader/index'
 import { getVoiLUTData } from './lut'
-import { debounce } from '../../utils/tools';
+import { debounce, throttle } from '../../utils/tools';
 
 const baseOptions = {
 
@@ -25,10 +25,17 @@ class Viewer {
     this.isRunning = false;
 
     this.displayState = {
+      area: {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0
+      },
       center: {
-        x: 0, y: 0
+        x: null, y: null
       },
       scale: 1,
+      ratio: 0,
       wwwc: {
         ww: WWWC.LUNG.ww,
         wc: WWWC.LUNG.wc
@@ -42,6 +49,35 @@ class Viewer {
     this.init()
   }
   resizeCallback = debounce(this.update, 150)
+  moveCallback = throttle(this.calPoints, 100)
+  calDisplayArea () {
+    const { displayState } = this;
+    const { width, height } = this.getElmSize();
+    let w = 0; let h = 0;
+    if (width > height) {
+      w = h = height;
+    } else {
+      w = h = width;
+    }
+    if (displayState.center.x === null) {
+      displayState.center = { x: width / 2, y: height / 2 };
+    }
+    let { center, scale } = displayState;
+    displayState.area = {
+      x: center.x - w * scale / 2,
+      y: center.y - h * scale / 2,
+      width: w * scale,
+      height: h * scale
+    }
+    displayState.ratio = w * scale / 512
+  }
+  calPoints (e) {
+    const { displayState: { area, ratio } } = this
+    let { clientX, clientY } = e;
+    let imageX = Math.round((clientX - area.x) / ratio)
+    let imageY = Math.round((clientY - area.y) / ratio)
+    console.log('image', imageX, imageY);
+  }
   getElmSize () {
     let { clientWidth, clientHeight } = this.elm;
     return { width: clientWidth, height: clientHeight };
@@ -74,6 +110,10 @@ class Viewer {
     canvas.style.zIndex = '1';
     this.canvas = canvas;
     this.elm.appendChild(canvas);
+
+    this.canvas.addEventListener('mousemove', (e) => {
+      this.moveCallback(e)
+    })
   }
   initTask () {
     let { loader, seriesId, config: { imageUrls } } = this;
@@ -93,6 +133,7 @@ class Viewer {
       }
     })
   }
+
   autoPlay () {
     if (this.isRunning) {
       return;
@@ -154,20 +195,14 @@ class Viewer {
     ctx.save();
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, width, height);
-    let w = 0; let h = 0; let x = 0; let y = 0;
-    if (width > height) {
-      w = h = height;
-      x = width / 2 - w / 2;
-      y = 0;
-    } else {
-      w = h = width;
-      x = 0;
-      y = height / 2 - h / 2;
-    }
-    ctx.translate(-w * 1.5, 0);
-    ctx.scale(4, 1);
-    ctx.drawImage(renderCanvas, 0, 0, 512, 512, x, y, w, h);
+
+
+    // ctx.translate(width / 2, height / 2);
+    this.calDisplayArea();
+    const { displayState: { area } } = this;
+    ctx.drawImage(renderCanvas, 0, 0, 512, 512, area.x, area.y, area.width, area.height);
     ctx.restore();
+    // ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 }
 
