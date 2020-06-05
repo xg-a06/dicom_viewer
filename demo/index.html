@@ -27,17 +27,14 @@
       position: fixed;
       z-index: 1;
       top: 10px;
-      left: 10px;
+      right: 10px;
       color: chartreuse;
     }
-    #play {
-      background-color: chartreuse;
+    select {
       width: 100px;
       height: 40px;
-      border: 0;
-      outline: none;
     }
-    #stop {
+    button {
       background-color: chartreuse;
       width: 100px;
       height: 40px;
@@ -48,9 +45,19 @@
   <body>
     <div id="wrapper"></div>
     <div id="info">
-      <span id="now">0</span>/<span id="total">0</span>
+      <!-- <span id="now">0</span>/<span id="total">0</span>
       <div>第<span id="current">0</span>张</div>
-      <button id="play">play</button> <button id="stop">stop</button>
+      <button id="play">play</button> <button id="stop">stop</button> -->
+      <select id="change">
+        <option value="L1x1">1x1</option>
+        <option value="L1+2">1+2</option>
+        <option value="L1+3">1+3</option>
+        <option value="L2+1">2+1</option>
+        <option value="L2x2">2x2</option>
+        <option value="L3x3">3x3</option>
+      </select>
+      <button id="play">play</button>
+      <button id="stop">stop</button>
     </div>
   </body>
 </html>

@@ -1,30 +1,48 @@
+/* eslint-disable no-unused-vars */
 
 import Viewport from './lib/viewport';
+import ViewportManager from './lib/viewportManager';
+import { LAYOUT } from './const';
+// eslint-disable-next-line no-unused-vars
 import imageUrls from '../demo/data.json'
 
 let seriesId = '1111111';
 
-const viewport = new Viewport({
-  seriesId,
-  imageUrls,
+// const viewport = new Viewport({
+//   seriesId,
+//   imageUrls,
+//   elm: document.querySelector('#wrapper')
+// })
+
+// window.vv = viewport;
+// document.body.addEventListener(
+//   'touchmove',
+//   function (e) {
+//     e.preventDefault();
+//   },
+//   { passive: false }
+// );
+
+const viewer = new ViewportManager({
   elm: document.querySelector('#wrapper')
+});
+viewer.addTask({ seriesId, imageUrls })
+const viewport = viewer.addViewport({ seriesId })
+
+document.querySelector('#change').addEventListener('change', function (e) {
+  viewer.changeLayout(e.target.value, viewport.id)
 })
 
-window.vv = viewport;
 document.querySelector('#play').addEventListener('click', function () {
-  viewport.autoPlay()
+  viewer.viewports.forEach(v => {
+    v.autoPlay();
+  });
 })
 document.querySelector('#stop').addEventListener('click', function () {
-  viewport.stopPlay()
+  viewer.viewports.forEach(v => {
+    v.stopPlay();
+  });
 })
-document.body.addEventListener(
-  'touchmove',
-  function (e) {
-    e.preventDefault();
-  },
-  { passive: false }
-);
-
 export default {
   Viewport
 }

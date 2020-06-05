@@ -1,5 +1,4 @@
-import EventEmitter from '../../utils/event'
-import { TASK_TYPE, LOADER_EVENT } from '../../const'
+import { TASK_TYPE, EVENTS } from '../../const'
 import LoaderWorker from '../workers/loader.worker';
 import { sleep, throttle } from '../../utils/tools';
 
@@ -11,7 +10,7 @@ const standardSize = 1024 * 1024 * 500
 const baseOptions = {
   workerCount: navigator.hardwareConcurrency || 4,
   turboLimit: 2,
-  turboState: false,
+  turboState: true,
   sizeLimit: isXp ? lowStandardSize : standardSize
 }
 
@@ -28,10 +27,11 @@ const workerFactory = (i, turboLimit, callback) => {
   return loaderWorker;
 }
 
-class DICOMLoader extends EventEmitter {
+class DICOMLoader {
   constructor(options = {}) {
-    super();
-    this.config = Object.assign({}, baseOptions, options)
+    this.config = Object.assign({}, baseOptions, options);
+    this.manager = this.config.manager;
+
     this.cacheManager = { index: {} }
     this.taskQueue = []
     this.workers = []
@@ -47,7 +47,7 @@ class DICOMLoader extends EventEmitter {
       index = image.instanceNumber - 1;
       this.setCache(seriesId, index, image);
       let count = this.cacheManager[seriesId].filter(i => i).length;
-      this.emit(LOADER_EVENT.LOADED, { seriesId, index, image, count })
+      this.manager.emit(EVENTS.LOADED, { seriesId, index, image, count })
       worker.isWork = false;
       this.pickTask(worker);
     }
@@ -65,6 +65,9 @@ class DICOMLoader extends EventEmitter {
     if (!this.cacheManager[seriesId]) {
       this.cacheManager[seriesId] = new Array(len);
     }
+  }
+  getSeriesCache (seriesId) {
+    return this.cacheManager[seriesId];
   }
   enableTurboBoost (state) {
     this.turboState = state;
@@ -165,8 +168,7 @@ class DICOMLoader extends EventEmitter {
           imageId,
         });
       }
-      // }, Math.ceil(Math.random() * 50 + 50));
-    }, Math.ceil(Math.random() * 50));
+    }, Math.ceil(Math.random() * 50 + 50));
   }
   async start () {
     for (const worker of this.workers) {

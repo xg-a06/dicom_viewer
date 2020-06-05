@@ -3,7 +3,8 @@ const TASK_TYPE = {
   NORMAL: 'NORMAL'
 }
 
-const LOADER_EVENT = {
+const EVENTS = {
+  RESIZE: 'RESIZE',
   LOADED: 'LOADED'
 }
 
@@ -15,20 +16,20 @@ const WWWC = {
 }
 
 const LAYOUT = {
-  L1X1: '1X1',
-  L1X2: '1X2',
-  L2X1: '2X1',
-  L2X2: '2X2',
-  L1X3: '1X3',
-  L3X1: '3X1',
-  L2X3: '2X3',
-  L3X2: '3X2',
-  L3X3: '3X3',
+  'L1x1': 'L1x1',
+  'L1x2': 'L1x2',
+  'L2x1': 'L2x1',
+  'L2+1': 'L2+1',
+  'L1+2': 'L1+2',
+  'L1x3': 'L1x3',
+  'L2x2': 'L2x2',
+  'L1+3': 'L1+3',
+  'L3x3': 'L3x3',
 }
 
 export {
   TASK_TYPE,
-  LOADER_EVENT,
+  EVENTS,
   WWWC,
   LAYOUT
 }
