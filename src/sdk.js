@@ -2,7 +2,7 @@
 
 import Viewport from './lib/viewport';
 import ViewportManager from './lib/viewportManager';
-import { LAYOUT } from './const';
+import { LAYOUT, TOOLTYPES } from './const';
 // eslint-disable-next-line no-unused-vars
 import imageUrls from '../demo/data.json'
 
@@ -27,6 +27,7 @@ const viewer = new ViewportManager({
   elm: document.querySelector('#wrapper')
 });
 viewer.addTask({ seriesId, imageUrls })
+viewer.toolsManager.activateTool(TOOLTYPES.WWWC)
 const viewport = viewer.addViewport({ seriesId })
 
 document.querySelector('#change').addEventListener('change', function (e) {
@@ -43,6 +44,13 @@ document.querySelector('#stop').addEventListener('click', function () {
     v.stopPlay();
   });
 })
+document.body.addEventListener(
+  'touchmove',
+  function (e) {
+    e.preventDefault();
+  },
+  { passive: false }
+);
 export default {
   Viewport
 }

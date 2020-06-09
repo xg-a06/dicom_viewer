@@ -1,7 +1,8 @@
-import Loader from '../loader/index'
-import Viewport from '../viewport/index'
+import Loader from '../loader'
+import Viewport from '../viewport'
+import ToolsManager from '../tools'
 import { EVENTS, LAYOUT } from '../../const';
-import EventEmitter from '../../utils/event';
+import EventEmitter from '../../utils/eventEmitter';
 import { debounce } from '../../utils/tools';
 import doLayout from './layouts';
 
@@ -15,11 +16,11 @@ class ViewportManager extends EventEmitter {
     this.elm = this.config.elm;
 
     this.loader = new Loader({ manager: this });
-    this.toolsManager = null;
-    this.layout = null;
+    this.toolsManager = new ToolsManager({ manager: this });
+    this.layout = LAYOUT.L1x1;
     this.viewports = [];
+    this.activeViewport = null;
     this.divs = [];
-    this.currentViewportId = null;
 
     this.init();
   }

@@ -4,12 +4,18 @@ class EventEmitter {
   constructor() {
     this[eventMap] = new Map()
   }
-  on (eventName, fn) {
-    if (this[eventMap].has(eventName)) {
-      this[eventMap].get(eventName).push(fn)
-    } else {
-      this[eventMap].set(eventName, [fn])
+  on (eventNames, fn) {
+    let events = [eventNames];
+    if (Array.isArray(eventNames)) {
+      events = eventNames;
     }
+    events.forEach(eventName => {
+      if (this[eventMap].has(eventName)) {
+        this[eventMap].get(eventName).push(fn)
+      } else {
+        this[eventMap].set(eventName, [fn])
+      }
+    })
     return this
   }
   off (eventName, fn) {

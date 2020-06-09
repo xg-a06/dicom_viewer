@@ -27,9 +27,25 @@ const LAYOUT = {
   'L3x3': 'L3x3',
 }
 
+const TXEVENTS = {
+  TOUCHDOWN: 'TX_TOUCHDOWN',
+  TOUCHUP: 'TX_TOUCHUP',
+  TAP: 'TX_TAP',
+  TOUCHMOVE: 'TX_TOUCHMOVE',
+  MOVE: 'TX_MOVE',
+}
+
+const TOOLTYPES = {
+  WWWC: 'TX_WWWC',
+  MOVE: 'TX_MOVE',
+  SCALE: 'TX_SCALE'
+}
+
 export {
   TASK_TYPE,
   EVENTS,
   WWWC,
-  LAYOUT
+  LAYOUT,
+  TXEVENTS,
+  TOOLTYPES
 }

@@ -1,6 +1,6 @@
 import { EVENTS, WWWC } from '../../const'
 import { getVoiLUTData } from './lut'
-import { throttle } from '../../utils/tools';
+import attachEvent from './event'
 
 const baseOptions = {
 
@@ -47,7 +47,7 @@ class Viewer {
 
     this.init()
   }
-  moveCallback = throttle(this.calPoints, 100)
+
   calDisplayArea () {
     const { displayState } = this;
     const { width, height } = this.getElmSize();
@@ -69,9 +69,10 @@ class Viewer {
   }
   calPoints (e) {
     const { displayState: { area, ratio } } = this
-    let { clientX, clientY } = e;
-    let imageX = Math.round((clientX - area.x) / ratio)
-    let imageY = Math.round((clientY - area.y) / ratio)
+    let { clientX, clientY, target } = e;
+    const { offsetLeft, offsetTop } = target.parentElement;
+    let imageX = Math.round((clientX - offsetLeft - area.x) / ratio)
+    let imageY = Math.round((clientY - offsetTop - area.y) / ratio)
     console.log('image', imageX, imageY);
   }
   getElmSize () {
@@ -94,10 +95,7 @@ class Viewer {
     canvas.style.zIndex = '1';
     this.canvas = canvas;
     this.elm.appendChild(canvas);
-
-    this.canvas.addEventListener('mousemove', (e) => {
-      this.moveCallback(e)
-    })
+    attachEvent(this);
   }
   initEvent () {
     this.manager.on(EVENTS.LOADED, ({ seriesId, index, image, count }) => {
@@ -145,7 +143,7 @@ class Viewer {
       if (image) {
         this.setImage(image)
       }
-    }, 30);
+    }, 50); // 200 100 50 35 25
   }
   stopPlay () {
     this.isRunning = false;

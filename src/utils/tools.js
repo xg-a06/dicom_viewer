@@ -47,10 +47,31 @@ function getNumberValues (dataSet, tag, minimumLength) {
   return values;
 }
 
+
+
+function getEquipment () {
+  let UA = navigator.userAgent;
+  let isAndroid = /android|adr|linux/gi.test(UA);
+  let isIOS = /iphone|ipod|ipad/gi.test(UA) && !isAndroid;
+  let isBlackBerry = /BlackBerry/i.test(UA);
+  let isWindowPhone = /IEMobile/i.test(UA);
+  let isMobile = isAndroid || isIOS || isBlackBerry || isWindowPhone;
+  return {
+    isAndroid: isAndroid,
+    isIOS: isIOS,
+    isMobile: isMobile,
+    isWeixin: /MicroMessenger/gi.test(UA),
+    isQQ: /QQ/gi.test(UA),
+    isWeibo: /WeiBo/gi.test(UA),
+    isPC: !isMobile
+  }
+}
+
 export {
   noop,
   sleep,
   debounce,
   throttle,
-  getNumberValues
+  getNumberValues,
+  getEquipment
 }
