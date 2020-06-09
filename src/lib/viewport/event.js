@@ -60,7 +60,7 @@ function attachEvent (viewport) {
       calPoints(viewport, e)
       e.eventName = TXEVENTS.TOUCHMOVE;
       manager.emit(TXEVENTS.TOUCHMOVE, e)
-    }, 100))
+    }, 50))
 
   } else {
     canvas.addEventListener('click', (e) => {
