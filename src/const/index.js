@@ -38,7 +38,8 @@ const TXEVENTS = {
 const TOOLTYPES = {
   WWWC: 'TX_WWWC',
   MOVE: 'TX_MOVE',
-  SCALE: 'TX_SCALE'
+  SCALE: 'TX_SCALE',
+  STACKSCROLL: 'TX_STACKSCROLL',
 }
 
 export {

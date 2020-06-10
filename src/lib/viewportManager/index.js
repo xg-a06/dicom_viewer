@@ -27,7 +27,7 @@ class ViewportManager extends EventEmitter {
 
   resizeCallback = debounce((e) => {
     this.emit(EVENTS.RESIZE, e);
-  }, 150);
+  }, 100);
 
   init () {
     this.initResize();

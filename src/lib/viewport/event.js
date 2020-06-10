@@ -60,17 +60,34 @@ function attachEvent (viewport) {
       calPoints(viewport, e)
       e.eventName = TXEVENTS.TOUCHMOVE;
       manager.emit(TXEVENTS.TOUCHMOVE, e)
-    }, 50))
+    }, 30))
 
   } else {
+    let isTouch = false;
+    canvas.addEventListener('mousedown', (e) => {
+      isTouch = true;
+      calPoints(viewport, e)
+      e.eventName = TXEVENTS.TOUCHDOWN;
+      manager.emit(TXEVENTS.TOUCHDOWN, e)
+    })
+    canvas.addEventListener('mouseup', (e) => {
+      isTouch = false;
+      calPoints(viewport, e)
+      e.eventName = TXEVENTS.TOUCHUP;
+      manager.emit(TXEVENTS.TOUCHUP, e)
+    })
     canvas.addEventListener('click', (e) => {
+      isTouch = false;
+      calPoints(viewport, e)
       e.eventName = TXEVENTS.TAP;
       manager.emit(TXEVENTS.TAP, e)
     })
     canvas.addEventListener('mousemove', (e) => {
-      calPoints(viewport, e)
-      e.eventName = TXEVENTS.TOUCHMOVE;
-      manager.emit(TXEVENTS.TOUCHMOVE, e)
+      if (isTouch) {
+        calPoints(viewport, e)
+        e.eventName = TXEVENTS.TOUCHMOVE;
+        manager.emit(TXEVENTS.TOUCHMOVE, e)
+      }
     })
   }
 }

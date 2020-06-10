@@ -1,9 +1,9 @@
 import { TOOLTYPES } from '../../const'
 
 
-class SCALE {
+class STACKSCROLL {
   constructor(options) {
-    this.toolType = TOOLTYPES.SCALE;
+    this.toolType = TOOLTYPES.STACKSCROLL;
     this.active = false;
     this.visible = false;
     this.points = null;
@@ -15,9 +15,8 @@ class SCALE {
 
   }
   touchdown (e) {
-    const { info: { clientX, clientY } } = e;
+    const { info: { clientY } } = e;
     this.points = {
-      x: clientX,
       y: clientY
     }
   }
@@ -27,16 +26,10 @@ class SCALE {
     this.points = {
       y: clientY
     }
-    let { scale } = viewport.displayState;
-    scale = scale + stepY / 200;
-    if (scale < 0.25) {
-      scale = 0.25
-    } else if (scale > 10) {
-      scale = 10;
-    }
-    viewport.displayState.scale = scale;
-    viewport.update();
+    let { showIndex } = viewport;
+    showIndex = showIndex + stepY / 2;
+    viewport.showImage(Math.round(showIndex))
   }
 }
 
-export default SCALE;
+export default STACKSCROLL;

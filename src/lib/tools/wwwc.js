@@ -7,7 +7,6 @@ class WWWC {
     this.active = false;
     this.visible = false;
     this.points = null;
-    this.wwwc = null;
   }
   render (e) {
 

@@ -1,8 +1,14 @@
 import { TOOLTYPES, TXEVENTS } from '../../const'
 import WWWC from './wwwc';
+import SCALE from './scale';
+import MOVE from './move';
+import STACKSCROLL from './stackScroll';
 
 const tools = {
-  [TOOLTYPES.WWWC]: WWWC
+  [TOOLTYPES.WWWC]: WWWC,
+  [TOOLTYPES.SCALE]: SCALE,
+  [TOOLTYPES.MOVE]: MOVE,
+  [TOOLTYPES.STACKSCROLL]: STACKSCROLL
 }
 
 const baseOptions = {

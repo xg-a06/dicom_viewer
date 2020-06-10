@@ -27,14 +27,9 @@ class Viewer {
 
     this.displayState = {
       area: {
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0
+        x: 0, y: 0, width: 0, height: 0
       },
-      center: {
-        x: null, y: null
-      },
+      center: null,
       scale: 1,
       ratio: 0,
       rotate: 0,
@@ -57,7 +52,9 @@ class Viewer {
     } else {
       w = h = width;
     }
-    displayState.center = { x: width / 2, y: height / 2 };
+    if (!displayState.center) {
+      displayState.center = { x: width / 2, y: height / 2 };
+    }
     let { center, scale } = displayState;
     displayState.area = {
       x: center.x - w * scale / 2,
@@ -106,6 +103,9 @@ class Viewer {
       }
     })
     this.manager.on(EVENTS.RESIZE, (e) => {
+      const { displayState } = this;
+      const { width, height } = this.getElmSize();
+      displayState.center = { x: width / 2, y: height / 2 };
       this.update();
     })
   }
@@ -126,6 +126,19 @@ class Viewer {
       this.setImage(image)
     }
   }
+  showImage (index) {
+    if (index < 0) {
+      index = 0;
+    } else if (index >= this.length) {
+      index = this.length - 1;
+    }
+    this.showIndex = this.currentIndex = index;
+    let seriesCache = this.manager.loader.getSeriesCache(this.seriesId);
+    let image = seriesCache[index];
+    if (image) {
+      this.setImage(image)
+    }
+  }
   autoPlay () {
     if (this.isRunning) {
       return;
@@ -134,15 +147,10 @@ class Viewer {
 
     this.timerId = setInterval(() => {
       let index = ++this.showIndex;
-      this.currentIndex = index;
       if (index >= this.length) {
-        this.showIndex = this.currentIndex = index = 0;
+        index = 0;
       }
-      let seriesCache = this.manager.loader.getSeriesCache(this.seriesId);
-      let image = seriesCache[index];
-      if (image) {
-        this.setImage(image)
-      }
+      this.showImage(index)
     }, 50); // 200 100 50 35 25
   }
   stopPlay () {
