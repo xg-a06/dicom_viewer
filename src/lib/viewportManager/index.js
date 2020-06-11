@@ -54,6 +54,7 @@ class ViewportManager extends EventEmitter {
       this.wrapper.appendChild(div);
       let viewport = this.viewports[index];
       if (viewport) {
+        viewport.displayState.center = null;// 这里需要在设计一下 临时这样解决
         viewport.setWrapper(div);
       }
       else if (!viewport && cloneViewportId) {

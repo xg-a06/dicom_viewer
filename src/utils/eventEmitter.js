@@ -43,6 +43,7 @@ class EventEmitter {
   }
   emit (eventName, ...args) {
     if (this[eventMap].has(eventName)) {
+      args[0].eventName = eventName;
       this[eventMap].get(eventName).forEach(fn => {
         fn.apply(this, args)
       })

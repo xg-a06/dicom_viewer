@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { TXEVENTS } from '../../const'
+import { TXEVENTS, EVENTS } from '../../const'
 import { getEquipment, throttle } from '../../utils/tools'
 
 const equ = getEquipment();
@@ -35,7 +35,6 @@ function attachEvent (viewport) {
       e.clientX = startX;
       e.clientY = startY;
       calPoints(viewport, e)
-      e.eventName = TXEVENTS.TOUCHDOWN;
       manager.emit(TXEVENTS.TOUCHDOWN, e)
     });
 
@@ -46,10 +45,8 @@ function attachEvent (viewport) {
       e.clientX = endX;
       e.clientY = endY;
       calPoints(viewport, e)
-      e.eventName = TXEVENTS.TOUCHUP;
       manager.emit(TXEVENTS.TOUCHUP, e)
       if (Math.abs(startX - endX) < 10 && Math.abs(startY - endY) < 10) {
-        e.eventName = TXEVENTS.TAP;
         manager.emit(TXEVENTS.TAP, e)
       }
     });
@@ -58,7 +55,6 @@ function attachEvent (viewport) {
       e.clientX = touches.clientX;
       e.clientY = touches.clientY;
       calPoints(viewport, e)
-      e.eventName = TXEVENTS.TOUCHMOVE;
       manager.emit(TXEVENTS.TOUCHMOVE, e)
     }, 30))
 
@@ -67,27 +63,54 @@ function attachEvent (viewport) {
     canvas.addEventListener('mousedown', (e) => {
       isTouch = true;
       calPoints(viewport, e)
-      e.eventName = TXEVENTS.TOUCHDOWN;
-      manager.emit(TXEVENTS.TOUCHDOWN, e)
+      if (e.which === 1) {
+        manager.emit(TXEVENTS.TOUCHDOWN, e)
+      }
+      else if (e.which === 2) {
+        manager.emit(TXEVENTS.TOUCHDOWN, e)
+      }
+      else if (e.which === 3) {
+        manager.emit(TXEVENTS.RIGHT_TOUCH_DOWN, e)
+      }
     })
     canvas.addEventListener('mouseup', (e) => {
       isTouch = false;
       calPoints(viewport, e)
-      e.eventName = TXEVENTS.TOUCHUP;
-      manager.emit(TXEVENTS.TOUCHUP, e)
+      if (e.which === 1) {
+        manager.emit(TXEVENTS.TOUCHUP, e)
+      }
+      else if (e.which === 2) {
+        manager.emit(TXEVENTS.TOUCHUP, e)
+      }
+      else if (e.which === 3) {
+        manager.emit(TXEVENTS.RIGHT_TOUCH_UP, e)
+      }
+
     })
     canvas.addEventListener('click', (e) => {
       isTouch = false;
       calPoints(viewport, e)
-      e.eventName = TXEVENTS.TAP;
       manager.emit(TXEVENTS.TAP, e)
     })
     canvas.addEventListener('mousemove', (e) => {
       if (isTouch) {
         calPoints(viewport, e)
-        e.eventName = TXEVENTS.TOUCHMOVE;
-        manager.emit(TXEVENTS.TOUCHMOVE, e)
+        if (e.which === 1) {
+          manager.emit(TXEVENTS.TOUCHMOVE, e)
+        }
+        else if (e.which === 2) {
+          manager.emit(TXEVENTS.RIGHTTOUCHMOVE, e)
+        }
+        else if (e.which === 3) {
+          manager.emit(TXEVENTS.RIGHT_TOUCH_MOVE, e)
+        }
       }
+    })
+    canvas.addEventListener('mouseout', (e) => {
+      isTouch = false;
+    })
+    canvas.addEventListener('contextmenu', e => {
+      e.preventDefault();
     })
   }
 }

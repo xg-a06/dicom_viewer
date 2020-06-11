@@ -2,7 +2,7 @@
 
 import Viewport from './lib/viewport';
 import ViewportManager from './lib/viewportManager';
-import { LAYOUT, TOOLTYPES } from './const';
+import { LAYOUT, TOOLTYPES, TXEVENTS } from './const';
 // eslint-disable-next-line no-unused-vars
 import imageUrls from '../demo/data.json'
 
@@ -28,6 +28,8 @@ const viewer = new ViewportManager({
 });
 viewer.addTask({ seriesId, imageUrls })
 viewer.toolsManager.activateTool(TOOLTYPES.WWWC)
+
+viewer.toolsManager.setDefaultActivateTool(TOOLTYPES.MOVE, { shortcutKey: 'right' })
 const viewport = viewer.addViewport({ seriesId })
 
 document.querySelector('#change').addEventListener('change', function (e) {

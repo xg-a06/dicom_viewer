@@ -23,6 +23,9 @@ class ToolsManager {
     this.activeTools = [];
     this.toolsData = []
     this.initEvents();
+    this.defaultActivateTools = {
+      right: null
+    };
   }
   initEvents () {
     this.manager.on([TXEVENTS.TOUCHDOWN, TXEVENTS.TOUCHUP, TXEVENTS.TAP, TXEVENTS.TOUCHMOVE], (e) => {
@@ -31,9 +34,24 @@ class ToolsManager {
         tool[action] && tool[action](e)
       });
     });
+
+
+    this.manager.on([TXEVENTS.RIGHT_TOUCH_DOWN, TXEVENTS.RIGHT_TOUCH_UP, TXEVENTS.RIGHT_TOUCH_MOVE], (e) => {
+      const defaultTool = this.defaultActivateTools.right;
+      if (defaultTool) {
+        let action = this.getAction(e.eventName);
+        defaultTool[action] && defaultTool[action](e)
+      }
+    });
   }
   getAction (eventName) {
-    return eventName.toLocaleLowerCase().replace('tx_', '');
+    let tmp = eventName.toLocaleLowerCase().split('_');
+    return tmp[tmp.length - 1];
+  }
+  setDefaultActivateTool (toolType, options) {
+    const { shortcutKey } = options;
+    const tool = new tools[toolType](options);
+    this.defaultActivateTools[shortcutKey] = tool;
   }
   activateTool (toolType, options = {}) {
     const tool = new tools[toolType](options);
