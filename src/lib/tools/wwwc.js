@@ -1,9 +1,9 @@
-import { TOOLTYPES } from '../../const'
+import { TOOL_TYPES } from '../../const'
 
 
 class WWWC {
   constructor(options) {
-    this.toolType = TOOLTYPES.WWWC;
+    this.toolType = TOOL_TYPES.WWWC;
     this.active = false;
     this.visible = false;
     this.points = null;

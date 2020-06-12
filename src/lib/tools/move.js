@@ -1,9 +1,9 @@
-import { TOOLTYPES } from '../../const'
+import { TOOL_TYPES } from '../../const'
 
 
 class MOVE {
   constructor(options) {
-    this.toolType = TOOLTYPES.MOVE;
+    this.toolType = TOOL_TYPES.MOVE;
     this.active = false;
     this.visible = false;
     this.points = null;

@@ -1,9 +1,9 @@
-import { TOOLTYPES } from '../../const'
+import { TOOL_TYPES } from '../../const'
 
 
 class STACKSCROLL {
   constructor(options) {
-    this.toolType = TOOLTYPES.STACKSCROLL;
+    this.toolType = TOOL_TYPES.STACKSCROLL;
     this.active = false;
     this.visible = false;
     this.points = null;

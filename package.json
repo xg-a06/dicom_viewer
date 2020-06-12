@@ -71,6 +71,7 @@
     "worker-loader": "^2.0.0"
   },
   "dependencies": {
-    "dicom-parser": "^1.8.5"
+    "dicom-parser": "^1.8.5",
+    "hammerjs": "^2.0.8"
   }
 }

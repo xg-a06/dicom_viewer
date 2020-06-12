@@ -1,9 +1,9 @@
-import { TOOLTYPES } from '../../const'
+import { TOOL_TYPES } from '../../const'
 
 
 class SCALE {
   constructor(options) {
-    this.toolType = TOOLTYPES.SCALE;
+    this.toolType = TOOL_TYPES.SCALE;
     this.active = false;
     this.visible = false;
     this.points = null;

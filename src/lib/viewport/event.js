@@ -1,6 +1,29 @@
 /* eslint-disable no-unused-vars */
-import { TXEVENTS, EVENTS } from '../../const'
+import { TX_EVENTS, EVENTS } from '../../const'
 import { getEquipment, throttle } from '../../utils/tools'
+import Hammer, { Pan } from 'hammerjs'
+
+const whichEventMap = {
+  '1': {
+    down: TX_EVENTS.TOUCHDOWN,
+    up: TX_EVENTS.TOUCHUP,
+    tap: TX_EVENTS.TAP,
+    touchmove: TX_EVENTS.TOUCHMOVE
+  },
+  '2': {
+    down: TX_EVENTS.MIDDLE_TOUCHDOWN,
+    up: TX_EVENTS.MIDDLE_TOUCHUP,
+    click: TX_EVENTS.MIDDLE_TAP,
+    touchmove: TX_EVENTS.MIDDLE_TOUCHMOVE
+  },
+  '3': {
+    down: TX_EVENTS.RIGHT_TOUCHDOWN,
+    up: TX_EVENTS.RIGHT_TOUCHUP,
+    click: TX_EVENTS.RIGHT_TAP,
+    touchmove: TX_EVENTS.RIGHT_TOUCHMOVE
+  },
+
+}
 
 const equ = getEquipment();
 
@@ -29,85 +52,95 @@ function attachEvent (viewport) {
   if (equ.isMobile) {
     let startX, startY, endX, endY;
     canvas.addEventListener('touchstart', function (e) {
+      if (e.touches.length > 1) {
+        return;
+      }
       const touches = e.touches[0];
       startX = touches.clientX;
       startY = touches.clientY;
       e.clientX = startX;
       e.clientY = startY;
       calPoints(viewport, e)
-      manager.emit(TXEVENTS.TOUCHDOWN, e)
+      manager.emit(TX_EVENTS.TOUCHDOWN, e)
     });
 
     canvas.addEventListener('touchend', (e) => {
+      if (e.changedTouches.length > 1) {
+        return;
+      }
       const touches = e.changedTouches[0];
       endX = touches.clientX;
       endY = touches.clientY;
       e.clientX = endX;
       e.clientY = endY;
       calPoints(viewport, e)
-      manager.emit(TXEVENTS.TOUCHUP, e)
+      manager.emit(TX_EVENTS.TOUCHUP, e)
       if (Math.abs(startX - endX) < 10 && Math.abs(startY - endY) < 10) {
-        manager.emit(TXEVENTS.TAP, e)
+        manager.emit(TX_EVENTS.TAP, e)
       }
     });
     canvas.addEventListener('touchmove', throttle((e) => {
+      if (e.changedTouches.length > 1) {
+        return;
+      }
       const touches = e.changedTouches[0];
       e.clientX = touches.clientX;
       e.clientY = touches.clientY;
       calPoints(viewport, e)
-      manager.emit(TXEVENTS.TOUCHMOVE, e)
+      manager.emit(TX_EVENTS.TOUCHMOVE, e)
     }, 30))
-
+    const hammer = new Hammer(canvas);
+    hammer.add(new Pan({
+      pointers: 2
+    }));
+    hammer.on('panstart', (e) => {
+      const { x, y } = e.center;
+      e.clientX = x;
+      e.clientY = y;
+      calPoints(viewport, e)
+      manager.emit(TX_EVENTS.PIN_TOUCHDOWN, e)
+    })
+    hammer.on('panmove', (e) => {
+      const { x, y } = e.center;
+      e.clientX = x;
+      e.clientY = y;
+      calPoints(viewport, e)
+      manager.emit(TX_EVENTS.PIN_TOUCHMOVE, e)
+    })
+    hammer.on('panend', (e) => {
+      const { x, y } = e.center;
+      e.clientX = x;
+      e.clientY = y;
+      calPoints(viewport, e)
+      manager.emit(TX_EVENTS.PIN_TOUCHUP, e)
+    })
   } else {
     let isTouch = false;
     canvas.addEventListener('mousedown', (e) => {
       isTouch = true;
       calPoints(viewport, e)
-      if (e.which === 1) {
-        manager.emit(TXEVENTS.TOUCHDOWN, e)
-      }
-      else if (e.which === 2) {
-        manager.emit(TXEVENTS.TOUCHDOWN, e)
-      }
-      else if (e.which === 3) {
-        manager.emit(TXEVENTS.RIGHT_TOUCH_DOWN, e)
-      }
+      manager.emit(whichEventMap[e.which].down, e)
     })
     canvas.addEventListener('mouseup', (e) => {
       isTouch = false;
       calPoints(viewport, e)
-      if (e.which === 1) {
-        manager.emit(TXEVENTS.TOUCHUP, e)
-      }
-      else if (e.which === 2) {
-        manager.emit(TXEVENTS.TOUCHUP, e)
-      }
-      else if (e.which === 3) {
-        manager.emit(TXEVENTS.RIGHT_TOUCH_UP, e)
-      }
-
+      manager.emit(whichEventMap[e.which].up, e)
     })
     canvas.addEventListener('click', (e) => {
       isTouch = false;
       calPoints(viewport, e)
-      manager.emit(TXEVENTS.TAP, e)
+      manager.emit(whichEventMap[e.which].tap, e)
     })
-    canvas.addEventListener('mousemove', (e) => {
+    canvas.addEventListener('mousemove', throttle((e) => {
+      manager.emit(TX_EVENTS.MOUSEMOVE, e)
       if (isTouch) {
         calPoints(viewport, e)
-        if (e.which === 1) {
-          manager.emit(TXEVENTS.TOUCHMOVE, e)
-        }
-        else if (e.which === 2) {
-          manager.emit(TXEVENTS.RIGHTTOUCHMOVE, e)
-        }
-        else if (e.which === 3) {
-          manager.emit(TXEVENTS.RIGHT_TOUCH_MOVE, e)
-        }
+        manager.emit(whichEventMap[e.which].touchmove, e)
       }
-    })
+    }, 30))
     canvas.addEventListener('mouseout', (e) => {
       isTouch = false;
+      manager.emit(TX_EVENTS.MOUSEOUT, e)
     })
     canvas.addEventListener('contextmenu', e => {
       e.preventDefault();
