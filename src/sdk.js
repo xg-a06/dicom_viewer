@@ -5,6 +5,10 @@ import ViewportManager from './lib/viewportManager';
 import { LAYOUT, TOOL_TYPES, TX_EVENTS, SHORTCUT_KEYS } from './const';
 // eslint-disable-next-line no-unused-vars
 import imageUrls from '../demo/data.json'
+import VConsole from 'vconsole'
+
+var vConsole = new VConsole();
+
 
 let seriesId = '1111111';
 
@@ -13,7 +17,6 @@ let seriesId = '1111111';
 //   imageUrls,
 //   elm: document.querySelector('#wrapper')
 // })
-
 // window.vv = viewport;
 // document.body.addEventListener(
 //   'touchmove',
@@ -27,10 +30,11 @@ const viewer = new ViewportManager({
   elm: document.querySelector('#wrapper')
 });
 viewer.addTask({ seriesId, imageUrls })
-viewer.toolsManager.activateTool(TOOL_TYPES.WWWC)
+viewer.toolsManager.activateTool(TOOL_TYPES.SCALE)
 
-viewer.toolsManager.setDefaultActivateTool(TOOL_TYPES.SCALE, { shortcutKey: SHORTCUT_KEYS.MIDDLE_BUTTON })
+// viewer.toolsManager.setDefaultActivateTool(TOOL_TYPES.SCALE, { shortcutKey: SHORTCUT_KEYS.MIDDLE_BUTTON })
 viewer.toolsManager.setDefaultActivateTool(TOOL_TYPES.MOVE, { shortcutKey: SHORTCUT_KEYS.PIN })
+viewer.toolsManager.setDefaultActivateTool(TOOL_TYPES.SCALE, { shortcutKey: SHORTCUT_KEYS.PINCH })
 const viewport = viewer.addViewport({ seriesId })
 
 document.querySelector('#change').addEventListener('change', function (e) {

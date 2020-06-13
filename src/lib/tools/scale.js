@@ -7,6 +7,7 @@ class SCALE {
     this.active = false;
     this.visible = false;
     this.points = null;
+    this.scale = null;
   }
   render (e) {
 
@@ -14,27 +15,43 @@ class SCALE {
   tap (e) {
 
   }
+  minStep (t, v) {
+    if (t > 2 && v > 0 && v < 0.5) {
+      v = 0.5
+    }
+    return v;
+  }
   touchdown (e) {
-    const { info: { clientX, clientY } } = e;
+    const { info: { clientY }, pinchScale } = e;
     this.points = {
-      x: clientX,
       y: clientY
     }
+    this.scale = pinchScale;
   }
   touchmove (e) {
-    const { info: { viewport, clientY } } = e;
-    let stepY = clientY - this.points.y;
-    this.points = {
-      y: clientY
+
+    let { info: { viewport, clientY }, pinchScale: scale } = e;
+    let { scale: tmpScale } = viewport.displayState;
+
+    if (scale) {
+      // fix hammer pinchin
+      tmpScale = tmpScale - this.minStep(tmpScale, this.scale - scale);
+      this.scale = scale;
+    } else {
+      let stepY = clientY - this.points.y;
+      this.points = {
+        y: clientY
+      }
+      tmpScale = tmpScale + stepY / 200;
     }
-    let { scale } = viewport.displayState;
-    scale = scale + stepY / 200;
-    if (scale < 0.25) {
-      scale = 0.25
-    } else if (scale > 10) {
-      scale = 10;
+
+    if (tmpScale < 0.25) {
+      tmpScale = 0.25
+    } else if (tmpScale > 8) {
+      tmpScale = 8;
     }
-    viewport.displayState.scale = scale;
+
+    viewport.displayState.scale = tmpScale;
     viewport.update();
   }
 }

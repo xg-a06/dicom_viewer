@@ -64,14 +64,6 @@ class Viewer {
     }
     displayState.ratio = w * scale / 512
   }
-  calPoints (e) {
-    const { displayState: { area, ratio } } = this
-    let { clientX, clientY, target } = e;
-    const { offsetLeft, offsetTop } = target.parentElement;
-    let imageX = Math.round((clientX - offsetLeft - area.x) / ratio)
-    let imageY = Math.round((clientY - offsetTop - area.y) / ratio)
-    console.log('image', imageX, imageY);
-  }
   getElmSize () {
     let { clientWidth, clientHeight } = this.elm;
     return { width: clientWidth, height: clientHeight };

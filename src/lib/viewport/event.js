@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { TX_EVENTS, EVENTS } from '../../const'
 import { getEquipment, throttle } from '../../utils/tools'
-import Hammer, { Pan } from 'hammerjs'
+import Hammer, { Pan, Pinch } from 'hammerjs'
 
 const whichEventMap = {
   '1': {
@@ -43,18 +43,20 @@ function calPoints (viewport, e) {
     offsetY,
     imageX,
     imageY,
-    viewport
+    viewport,
   }
 }
 
 function attachEvent (viewport) {
   const { manager, canvas } = viewport;
   if (equ.isMobile) {
-    let startX, startY, endX, endY;
+    let startX; let startY; let endX; let endY; let isTouch = false;
     canvas.addEventListener('touchstart', function (e) {
       if (e.touches.length > 1) {
+        isTouch = false;
         return;
       }
+      isTouch = true;
       const touches = e.touches[0];
       startX = touches.clientX;
       startY = touches.clientY;
@@ -68,6 +70,7 @@ function attachEvent (viewport) {
       if (e.changedTouches.length > 1) {
         return;
       }
+      isTouch = false;
       const touches = e.changedTouches[0];
       endX = touches.clientX;
       endY = touches.clientY;
@@ -80,7 +83,7 @@ function attachEvent (viewport) {
       }
     });
     canvas.addEventListener('touchmove', throttle((e) => {
-      if (e.changedTouches.length > 1) {
+      if (e.changedTouches.length > 1 || !isTouch) {
         return;
       }
       const touches = e.changedTouches[0];
@@ -89,10 +92,11 @@ function attachEvent (viewport) {
       calPoints(viewport, e)
       manager.emit(TX_EVENTS.TOUCHMOVE, e)
     }, 30))
+
     const hammer = new Hammer(canvas);
-    hammer.add(new Pan({
-      pointers: 2
-    }));
+    hammer.get('pinch').set({ enable: true });
+    hammer.add(new Pan({ pointers: 2 }));
+    hammer.add(new Pinch({ threshold: 0.1 }));
     hammer.on('panstart', (e) => {
       const { x, y } = e.center;
       e.clientX = x;
@@ -100,19 +104,34 @@ function attachEvent (viewport) {
       calPoints(viewport, e)
       manager.emit(TX_EVENTS.PIN_TOUCHDOWN, e)
     })
-    hammer.on('panmove', (e) => {
+    hammer.on('panmove', throttle((e) => {
       const { x, y } = e.center;
       e.clientX = x;
       e.clientY = y;
       calPoints(viewport, e)
       manager.emit(TX_EVENTS.PIN_TOUCHMOVE, e)
-    })
+    }, 30))
     hammer.on('panend', (e) => {
       const { x, y } = e.center;
       e.clientX = x;
       e.clientY = y;
       calPoints(viewport, e)
       manager.emit(TX_EVENTS.PIN_TOUCHUP, e)
+    })
+    hammer.on('pinchstart', (e) => {
+      e.pinchScale = e.scale;
+      calPoints(viewport, e)
+      manager.emit(TX_EVENTS.PINCH_TOUCHDOWN, e)
+    })
+    hammer.on('pinchmove', throttle((e) => {
+      e.pinchScale = e.scale;
+      calPoints(viewport, e)
+      manager.emit(TX_EVENTS.PINCH_TOUCHMOVE, e)
+    }, 30))
+    hammer.on('pinchend', (e) => {
+      e.pinchScale = e.scale;
+      calPoints(viewport, e)
+      manager.emit(TX_EVENTS.PINCH_TOUCHUP, e)
     })
   } else {
     let isTouch = false;

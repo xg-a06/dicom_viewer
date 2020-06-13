@@ -35,6 +35,10 @@ class ToolsManager {
       [SHORTCUT_KEYS.PIN]: {
         target: null,
         events: [TX_EVENTS.PIN_TOUCHDOWN, TX_EVENTS.PIN_TOUCHUP, TX_EVENTS.PIN_TOUCHMOVE]
+      },
+      [SHORTCUT_KEYS.PINCH]: {
+        target: null,
+        events: [TX_EVENTS.PINCH_TOUCHDOWN, TX_EVENTS.PINCH_TOUCHUP, TX_EVENTS.PINCH_TOUCHMOVE]
       }
     };
 
