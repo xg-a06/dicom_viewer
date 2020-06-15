@@ -30,7 +30,7 @@ const viewer = new ViewportManager({
   elm: document.querySelector('#wrapper')
 });
 viewer.addTask({ seriesId, imageUrls })
-viewer.toolsManager.activateTool(TOOL_TYPES.STACKSCROLL)
+viewer.toolsManager.activateTool(TOOL_TYPES.SCALE)
 viewer.toolsManager.activateTool(TOOL_TYPES.SCALEBAR)
 
 // viewer.toolsManager.setDefaultActivateTool(TOOL_TYPES.SCALE, { shortcutKey: SHORTCUT_KEYS.MIDDLE_BUTTON })

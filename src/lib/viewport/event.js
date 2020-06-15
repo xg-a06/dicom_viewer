@@ -27,13 +27,13 @@ const whichEventMap = {
 const equ = getEquipment();
 
 function calPoints (viewport, e) {
-  const { displayState: { area, ratio } } = viewport
+  const { displayState: { area, scale } } = viewport
   let { clientX, clientY, target } = e;
   const { offsetLeft, offsetTop } = target.parentElement;
   const offsetX = clientX - offsetLeft;
   const offsetY = clientY - offsetTop;
-  let imageX = Math.round((clientX - offsetLeft - area.x) / ratio)
-  let imageY = Math.round((clientY - offsetTop - area.y) / ratio)
+  let imageX = Math.round((clientX - offsetLeft - area.x) / scale)
+  let imageY = Math.round((clientY - offsetTop - area.y) / scale)
   e.info = {
     el: target,
     clientX,

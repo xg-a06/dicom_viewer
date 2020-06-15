@@ -47,7 +47,7 @@ class ToolsManager {
     this.initEvents();
   }
   initEvents () {
-    this.manager.on([TX_EVENTS.TOUCHDOWN, TX_EVENTS.TOUCHUP, TX_EVENTS.TAP, TX_EVENTS.TOUCHMOVE], (e) => {
+    this.manager.on([TX_EVENTS.TOUCHDOWN, TX_EVENTS.TOUCHUP, TX_EVENTS.TAP, TX_EVENTS.TOUCHMOVE, TX_EVENTS.RENDERED], (e) => {
       this.activeTools.forEach(tool => {
         let action = this.getAction(e.eventName);
         tool[action] && tool[action](e)

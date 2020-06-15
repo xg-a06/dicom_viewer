@@ -2,6 +2,7 @@ import { EVENTS, TX_EVENTS, WWWC } from '../../const'
 import { getVoiLUTData } from './lut'
 import attachEvent from './event'
 
+const IMAGE_WIDTH = 512;
 const baseOptions = {
 
 }
@@ -15,7 +16,6 @@ class Viewer {
     this.studyId = null;
     this.seriesId = null;
     this.length = null;
-
     this.image = null;
     this.currentIndex = -1;
     this.showIndex = 0;
@@ -30,8 +30,7 @@ class Viewer {
         x: 0, y: 0, width: 0, height: 0
       },
       center: null,
-      scale: 1,
-      ratio: 0,
+      scale: null,
       rotate: 0,
       invert: false,
       wwwc: {
@@ -42,27 +41,37 @@ class Viewer {
 
     this.init()
   }
-
-  calDisplayArea () {
+  updateCenter (forceUpdate = false) {
     const { displayState } = this;
     const { width, height } = this.getElmSize();
-    let w = 0; let h = 0;
-    if (width > height) {
-      w = h = height;
-    } else {
-      w = h = width;
-    }
-    if (!displayState.center) {
+    if (forceUpdate || !displayState.center) {
       displayState.center = { x: width / 2, y: height / 2 };
     }
+  }
+  updateScale (forceUpdate = false) {
+    const { displayState } = this;
+    const { width, height } = this.getElmSize();
+    let w = 0;
+    if (width > height) {
+      w = height;
+    } else {
+      w = width;
+    }
+    if (forceUpdate || !displayState.scale) {
+      displayState.scale = w / IMAGE_WIDTH;
+    }
+  }
+  calDisplayArea () {
+    const { displayState } = this;
+    this.updateCenter();
+    this.updateScale();
     let { center, scale } = displayState;
     displayState.area = {
-      x: center.x - w * scale / 2,
-      y: center.y - h * scale / 2,
-      width: w * scale,
-      height: h * scale
+      x: center.x - IMAGE_WIDTH * scale / 2,
+      y: center.y - IMAGE_WIDTH * scale / 2,
+      width: IMAGE_WIDTH * scale,
+      height: IMAGE_WIDTH * scale
     }
-    displayState.ratio = w * scale / 512
   }
   getElmSize () {
     let { clientWidth, clientHeight } = this.elm;
@@ -74,8 +83,8 @@ class Viewer {
   }
   initCanvas () {
     const renderCanvas = document.createElement('canvas');
-    renderCanvas.width = 512;
-    renderCanvas.height = 512;
+    renderCanvas.width = IMAGE_WIDTH;
+    renderCanvas.height = IMAGE_WIDTH;
     this.renderCanvas = renderCanvas;
 
     const canvas = document.createElement('canvas');
@@ -95,9 +104,8 @@ class Viewer {
       }
     })
     this.manager.on(EVENTS.RESIZE, (e) => {
-      const { displayState } = this;
-      const { width, height } = this.getElmSize();
-      displayState.center = { x: width / 2, y: height / 2 };
+      this.updateCenter(true);
+      this.updateScale(true);
       this.update();
     })
   }
@@ -165,7 +173,7 @@ class Viewer {
     const renderCanvasData = ctx.getImageData(0, 0, width, height);
 
     let imageDataIndex = 3;
-    let numPixels = 512 * 512;
+    let numPixels = IMAGE_WIDTH * IMAGE_WIDTH;
     for (let i = 0; i < numPixels; i++) {
       renderCanvasData.data[imageDataIndex] = lut[pixelData[i] + (-image.minPixelValue)];
       imageDataIndex += 4;
@@ -189,7 +197,7 @@ class Viewer {
 
     this.calDisplayArea();
     const { displayState: { area } } = this;
-    ctx.drawImage(renderCanvas, 0, 0, 512, 512, area.x, area.y, area.width, area.height);
+    ctx.drawImage(renderCanvas, 0, 0, IMAGE_WIDTH, IMAGE_WIDTH, area.x, area.y, area.width, area.height);
     ctx.restore();
 
     this.manager.emit(TX_EVENTS.RENDERED, {

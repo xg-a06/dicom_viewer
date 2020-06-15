@@ -8,9 +8,8 @@ class SCALEBAR {
     this.visible = false;
   }
   render (e) {
-    console.log(e);
-  }
 
+  }
 }
 
 export default SCALEBAR;

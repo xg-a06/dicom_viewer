@@ -15,7 +15,6 @@ class WWWC {
 
   }
   touchdown (e) {
-
     const { info: { clientX, clientY } } = e;
     this.points = {
       x: clientX,
