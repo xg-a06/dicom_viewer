@@ -21,8 +21,7 @@ const whichEventMap = {
     up: TX_EVENTS.RIGHT_TOUCHUP,
     click: TX_EVENTS.RIGHT_TAP,
     touchmove: TX_EVENTS.RIGHT_TOUCHMOVE
-  },
-
+  }
 }
 
 const equ = getEquipment();
@@ -95,29 +94,29 @@ function attachEvent (viewport) {
 
     const hammer = new Hammer(canvas);
     hammer.get('pinch').set({ enable: true });
-    hammer.add(new Pan({ pointers: 2 }));
+    // hammer.add(new Pan({ pointers: 2 }));
     hammer.add(new Pinch({ threshold: 0.1 }));
-    hammer.on('panstart', (e) => {
-      const { x, y } = e.center;
-      e.clientX = x;
-      e.clientY = y;
-      calPoints(viewport, e)
-      manager.emit(TX_EVENTS.PIN_TOUCHDOWN, e)
-    })
-    hammer.on('panmove', throttle((e) => {
-      const { x, y } = e.center;
-      e.clientX = x;
-      e.clientY = y;
-      calPoints(viewport, e)
-      manager.emit(TX_EVENTS.PIN_TOUCHMOVE, e)
-    }, 30))
-    hammer.on('panend', (e) => {
-      const { x, y } = e.center;
-      e.clientX = x;
-      e.clientY = y;
-      calPoints(viewport, e)
-      manager.emit(TX_EVENTS.PIN_TOUCHUP, e)
-    })
+    // hammer.on('panstart', (e) => {
+    //   const { x, y } = e.center;
+    //   e.clientX = x;
+    //   e.clientY = y;
+    //   calPoints(viewport, e)
+    //   manager.emit(TX_EVENTS.PIN_TOUCHDOWN, e)
+    // })
+    // hammer.on('panmove', throttle((e) => {
+    //   const { x, y } = e.center;
+    //   e.clientX = x;
+    //   e.clientY = y;
+    //   calPoints(viewport, e)
+    //   manager.emit(TX_EVENTS.PIN_TOUCHMOVE, e)
+    // }, 30))
+    // hammer.on('panend', (e) => {
+    //   const { x, y } = e.center;
+    //   e.clientX = x;
+    //   e.clientY = y;
+    //   calPoints(viewport, e)
+    //   manager.emit(TX_EVENTS.PIN_TOUCHUP, e)
+    // })
     hammer.on('pinchstart', (e) => {
       e.pinchScale = e.scale;
       calPoints(viewport, e)

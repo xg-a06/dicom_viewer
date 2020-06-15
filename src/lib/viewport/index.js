@@ -1,4 +1,4 @@
-import { EVENTS, WWWC } from '../../const'
+import { EVENTS, TX_EVENTS, WWWC } from '../../const'
 import { getVoiLUTData } from './lut'
 import attachEvent from './event'
 
@@ -191,6 +191,13 @@ class Viewer {
     const { displayState: { area } } = this;
     ctx.drawImage(renderCanvas, 0, 0, 512, 512, area.x, area.y, area.width, area.height);
     ctx.restore();
+
+    this.manager.emit(TX_EVENTS.RENDERED, {
+      info: {
+        el: canvas,
+        viewport: this,
+      }
+    })
   }
 }
 

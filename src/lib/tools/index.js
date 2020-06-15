@@ -3,12 +3,14 @@ import WWWC from './wwwc';
 import SCALE from './scale';
 import MOVE from './move';
 import STACKSCROLL from './stackScroll';
+import SCALEBAR from './scaleBar';
 
 const tools = {
   [TOOL_TYPES.WWWC]: WWWC,
   [TOOL_TYPES.SCALE]: SCALE,
   [TOOL_TYPES.MOVE]: MOVE,
-  [TOOL_TYPES.STACKSCROLL]: STACKSCROLL
+  [TOOL_TYPES.STACKSCROLL]: STACKSCROLL,
+  [TOOL_TYPES.SCALEBAR]: SCALEBAR,
 }
 
 const baseOptions = {
